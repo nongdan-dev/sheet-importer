@@ -1,0 +1,1 @@
+{"version":3,"file":"Confirmation.d.ts","sourceRoot":"","sources":["../../src/features/Confirmation.tsx"],"names":[],"mappings":"AAEA,UAAU,qBAAqB;IAC7B,YAAY,EAAE,OAAO,CAAA;IACrB,aAAa,EAAE,OAAO,CAAA;IACtB,WAAW,EAAE,MAAM,GAAG,IAAI,CAAA;IAC1B,OAAO,EAAE,MAAM,IAAI,CAAA;IACnB,OAAO,EAAE,MAAM,IAAI,CAAA;CACpB;AAED,eAAO,MAAM,gBAAgB,GAAI,iEAM9B,qBAAqB,mDAqEvB,CAAA"}

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@sheet-importer/lib": ["../../packages/lib/dist"],
+      "@sheet-importer/lib/*": ["../../packages/lib/dist/*"]
+    },
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+  }
+}
