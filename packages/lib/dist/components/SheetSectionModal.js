@@ -1,5 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-export const SheetSelectionModal = ({ sheetNames, onSelect, onClose, }) => {
-    return (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50", children: _jsxs("div", { className: "bg-white rounded-lg shadow-xl max-w-md w-full p-6", children: [_jsx("h3", { className: "text-lg font-medium mb-4", children: "Select a Sheet" }), _jsx("div", { className: "space-y-2 max-h-96 overflow-y-auto", children: sheetNames.map((name) => (_jsx("button", { onClick: () => onSelect(name), className: "w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md", children: name }, name))) }), _jsx("div", { className: "mt-6 flex justify-end", children: _jsx("button", { onClick: onClose, className: "px-4 py-2 text-gray-600 hover:text-gray-800", children: "Cancel" }) })] }) }));
-};
-//# sourceMappingURL=SheetSectionModal.js.map

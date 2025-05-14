@@ -1,10 +1,23 @@
-import { CustomType, SheetMappingData } from "@sheet-importer/lib";
+import {
+  builtInValidate,
+  CustomType,
+  SheetMappingData,
+} from "@sheet-importer/lib";
 import React from "react";
 
 function App() {
   const onSubmit = async (jsonData: any[]) => {
     console.log("jsonData", jsonData);
   };
+
+  // const valdateDiscount = value => {
+  //   if (!/%$/.test(value)) return { error: 'Khong co dau phan tram' }
+  //   let v = value.replace('%', '')
+  //   v = Number(v) / 100
+  //   if (v < 0 || v > 1) return { error: 'so khong hop le' }
+  //   return { value: v }
+  // }
+
   const discountDetector: CustomType<number> = {
     id: "discountID",
     label: "Discount",
@@ -48,7 +61,9 @@ function App() {
   const plantTypeDetector: CustomType<string> = {
     id: "plantTypeID",
     label: "Loại cây",
-    validate: (value: string) => {
+    validate: async (value: string) => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       if (typeof value !== "string") {
         return { error: "Value must be string" };
       }
@@ -66,11 +81,25 @@ function App() {
     display: (value: string) => value,
   };
 
+  const mockOnAddField = async (field: CustomType): Promise<void> => {
+    console.log(" Mock API - Field added:", field);
+
+    return new Promise((resolve) => setTimeout(resolve, 500));
+  };
+
+  const priceDetector: CustomType<number> = {
+    id: "priceID",
+    label: "Price",
+    validate: builtInValidate.number,
+    display: (value: number) => `$${value.toFixed(2)}`,
+  };
+
   return (
     <div>
       <SheetMappingData
         onSubmit={onSubmit}
-        fields={[discountDetector, plantTypeDetector]}
+        fields={[discountDetector, plantTypeDetector, priceDetector]}
+        onAddField={mockOnAddField}
       />
     </div>
   );

@@ -3,8 +3,7 @@
     "jsx": "react",
     "baseUrl": ".",
     "paths": {
-      "@sheet-importer/lib": ["../../packages/lib/dist"],
-      "@sheet-importer/lib/*": ["../../packages/lib/dist/*"]
+      "@sheet-importer/lib/*": ["../../packages/lib/*"]
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

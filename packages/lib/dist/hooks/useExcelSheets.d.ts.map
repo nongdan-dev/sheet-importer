@@ -1,1 +1,0 @@
-{"version":3,"file":"useExcelSheets.d.ts","sourceRoot":"","sources":["../../src/hooks/useExcelSheets.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,WAAW,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAA;AAE/C,OAAO,KAAK,IAAI,MAAM,MAAM,CAAA;AAE5B,UAAU,eAAe;IACvB,OAAO,EAAE,QAAQ,EAAE,CAAA;IACnB,UAAU,EAAE,WAAW,CAAA;CACxB;AAED,eAAO,MAAM,cAAc;;4BAGM,MAAM,aAAa,IAAI,CAAC,SAAS;CAmDjE,CAAA"}
