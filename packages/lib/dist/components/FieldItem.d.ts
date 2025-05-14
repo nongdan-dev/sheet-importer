@@ -1,8 +1,8 @@
-import { CustomType } from '@/types'
-import React from 'react'
+import { CustomType } from '@/types';
+import React from 'react';
 interface FieldItemProps {
-  field: CustomType
+    field: CustomType;
 }
-export declare const FieldItem: React.FC<FieldItemProps>
-export {}
+export declare const FieldItem: React.FC<FieldItemProps>;
+export {};
 //# sourceMappingURL=FieldItem.d.ts.map

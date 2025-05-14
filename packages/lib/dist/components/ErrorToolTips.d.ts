@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 interface ErrorTooltipProps {
-  message: string
+    message: string;
 }
-export declare const ErrorTooltip: React.FC<ErrorTooltipProps>
-export {}
+export declare const ErrorTooltip: React.FC<ErrorTooltipProps>;
+export {};
 //# sourceMappingURL=ErrorToolTips.d.ts.map
