@@ -66,15 +66,17 @@ export const DataValidationStep = forwardRef((props: DataValidationStepProps, re
     return filteredExcelData.map((row) => ({ ...row }))
   }, [filteredExcelData])
 
-  const validateData = useCallback(() => {
+  const validateData = useCallback(async () => {
     const newErrors: ValidationError[] = []
 
-    systemFieldsList.forEach((field) => {
-      if (!field.validate) return
+    for (const field of systemFieldsList) {
+      if (!field.validate) continue
 
-      filteredExcelData.forEach((row, rowIndex) => {
+      for (let rowIndex = 0; rowIndex < filteredExcelData.length; rowIndex++) {
+        const row = filteredExcelData[rowIndex]
         const value = row[field.id]
-        const validationResult = field.validate ? field.validate(String(value)) : { error: null }
+
+        const validationResult = await field.validate(String(value))
 
         if (validationResult.error) {
           newErrors.push({
@@ -83,14 +85,14 @@ export const DataValidationStep = forwardRef((props: DataValidationStepProps, re
             message: validationResult.error,
           })
         }
-      })
-    })
+      }
+    }
 
     setErrors(newErrors)
   }, [filteredExcelData, systemFieldsList])
 
   const handleCellChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, rowIndex: number, field: CustomType) => {
+    async (e: React.ChangeEvent<HTMLInputElement>, rowIndex: number, field: CustomType) => {
       const newValue = e.target.value
       const fieldId = field.id
       const inputKey = `${rowIndex}-${fieldId}`
@@ -106,24 +108,33 @@ export const DataValidationStep = forwardRef((props: DataValidationStepProps, re
       })
 
       if (field.validate) {
-        const validationResult = field.validate(newValue)
+        try {
+          const validationResult = await field.validate(newValue)
 
-        if (validationResult.error) {
+          if (validationResult.error) {
+            setEditingErrors((prev) => ({
+              ...prev,
+              [inputKey]: validationResult.error || '',
+            }))
+          } else if (validationResult.value !== undefined) {
+            updateCell(rowIndex, fieldId, validationResult.value)
+
+            setErrors((prev) =>
+              prev.filter((err) => !(err.rowIndex === rowIndex && err.field === fieldId)),
+            )
+          }
+        } catch (err) {
           setEditingErrors((prev) => ({
             ...prev,
-            [inputKey]: validationResult.error || '',
+            [inputKey]: 'Validation error',
           }))
-        } else if (validationResult.value !== undefined) {
-          updateCell(rowIndex, fieldId, validationResult.value)
-
-          setErrors((prev) =>
-            prev.filter((err) => !(err.rowIndex === rowIndex && err.field === fieldId)),
-          )
         }
       }
 
       if (validateTimerRef.current) clearTimeout(validateTimerRef.current)
-      validateTimerRef.current = setTimeout(validateData, 500)
+      validateTimerRef.current = setTimeout(() => {
+        validateData()
+      }, 500)
     },
     [updateCell, validateData],
   )

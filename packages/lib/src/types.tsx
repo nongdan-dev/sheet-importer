@@ -105,7 +105,9 @@ export const DEFAULT_LABELS: SheetMappingDataLabels = {
 export type CustomType<T = any> = {
   id: string
   label: string
-  validate?: (value: string) => { error?: string; value?: T }
+  validate?: (
+    value: string,
+  ) => Promise<{ error?: string; value?: T }> | { error?: string; value?: T }
   threshold?: number
   display?: (value: T) => string
 }
@@ -146,4 +148,5 @@ export interface SheetMappingDataProps {
   onSubmit: (jsonData: any[]) => Promise<void>
   fields?: CustomType[]
   labels?: Partial<SheetMappingDataLabels>
+  onAddField?: (field: CustomType) => Promise<void>
 }

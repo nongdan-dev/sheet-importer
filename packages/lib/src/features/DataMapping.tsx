@@ -1,3 +1,4 @@
+import { AddFieldModal } from '../components/AddFieldModal'
 import { FieldList } from '../components/FieldList'
 import { Modal } from '../components/Modal'
 import { PreviewTable } from '../components/PreviewTable'
@@ -10,14 +11,14 @@ type DataMappingStepProps = {
   columnData: ExcelColumn
   systemFields: CustomType[]
   mapping: Record<string, string>
-  setMapping: (mapping: Record<string, string>) => void
+  setMapping: React.Dispatch<React.SetStateAction<Record<string, string>>>
   setFilteredExcelData: (data: ExcelRow[]) => void
   setSystemFields: (fields: CustomType[]) => void
   removeMapping: (fieldId: string) => void
   onNext?: () => void
   onBack?: () => void
   enableLabelMapping?: boolean
-  customDetectors?: CustomType[]
+  fields?: CustomType[]
   setDisableNegative?: (b: boolean) => void
   setDisablePositive?: (b: boolean) => void
   labels: {
@@ -34,6 +35,7 @@ type DataMappingStepProps = {
       addField: string
     }
   }
+  onAddField?: (field: CustomType) => Promise<void>
 }
 
 export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => {
@@ -47,13 +49,14 @@ export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => 
     setSystemFields,
     removeMapping,
     onNext,
-    customDetectors,
+    fields,
     setDisableNegative,
     setDisablePositive,
     labels,
+    onAddField,
   } = props
 
-  // const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [mappingWarnings, setMappingWarnings] = useState<Record<string, string[]>>({})
 
@@ -68,7 +71,6 @@ export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => 
   // }
 
   useEffect(() => {
-    console.log('mappingWarnings', Object.keys(mappingWarnings).length === 0)
     if (setDisablePositive) {
       if (Object.keys(mappingWarnings).length === 0) {
         setDisablePositive(false)
@@ -99,39 +101,99 @@ export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => 
   }, [mapping])
 
   useEffect(() => {
-    if (rowData.length === 0 || !customDetectors) return
+    if (rowData.length === 0 || !fields) return
 
-    const newMapping: Record<string, string> = {}
-    const mappedColumns = new Set(Object.values(mapping))
+    let cancelled = false
 
-    systemFields.forEach((field) => {
-      if (!mapping[field.id]) {
-        const detector = customDetectors.find((d) => d.id === field.id)
+    const detectAndMap = async () => {
+      const newMapping: Record<string, string> = {}
+      const mappedColumns = new Set(Object.values(mapping))
+
+      const promises = systemFields.map(async (field) => {
+        if (mapping[field.id]) return
+
+        const detector = fields.find((d) => d.id === field.id)
         if (!detector) return
 
-        const bestColumn = Object.entries(columnData)
-          .filter(([col]) => !mappedColumns.has(col))
-          .map(([col, values]) => {
-            const detectedType = detectColumnType(values, [detector])
-            return {
-              col,
-              matchRatio: detectedType === field.id ? 1 : 0,
-              detector,
-            }
-          })
-          .find(({ matchRatio }) => matchRatio >= (detector.threshold || 0.7))
+        for (const [col, values] of Object.entries(columnData)) {
+          if (mappedColumns.has(col)) continue
 
-        if (bestColumn) {
-          newMapping[field.id] = bestColumn.col
-          mappedColumns.add(bestColumn.col)
+          try {
+            const detectedType = await detectColumnType(values, [detector])
+            if (detectedType === field.id) {
+              newMapping[field.id] = col
+              mappedColumns.add(col)
+              break
+            }
+          } catch (err) {
+            console.log(`field "${field.id}" / column "${col}":`, err)
+          }
+        }
+      })
+
+      await Promise.all(promises)
+
+      if (!cancelled && Object.keys(newMapping).length > 0) {
+        setMapping({ ...mapping, ...newMapping })
+      }
+    }
+
+    detectAndMap()
+
+    return () => {
+      cancelled = true
+    }
+  }, [rowData, systemFields, columnData, mapping, fields])
+
+  useEffect(() => {
+    if (rowData.length === 0 || !fields) return
+
+    let cancelled = false
+    const mappedCols = new Set<string>()
+
+    const detectAndMap = async () => {
+      const tasks: Promise<void>[] = []
+
+      for (const field of systemFields) {
+        if (mapping[field.id]) continue
+
+        const detector = fields.find((d) => d.id === field.id)
+        if (!detector) continue
+
+        for (const [col, values] of Object.entries(columnData)) {
+          if (mappedCols.has(col) || Object.values(mapping).includes(col)) continue
+
+          const task = (async () => {
+            try {
+              const detectedType = await detectColumnType(values, [detector])
+              if (!cancelled && detectedType === field.id) {
+                mappedCols.add(col)
+                setMapping((prev) => {
+                  if (prev[field.id] || Object.values(prev).includes(col)) return prev
+                  return {
+                    ...prev,
+                    [field.id]: col,
+                  }
+                })
+              }
+            } catch (err) {
+              console.error(`field "${field.id}" / column "${col}":`, err)
+            }
+          })()
+
+          tasks.push(task)
         }
       }
-    })
 
-    if (Object.keys(newMapping).length > 0) {
-      setMapping({ ...mapping, ...newMapping })
+      await Promise.allSettled(tasks)
     }
-  }, [rowData, systemFields, columnData, mapping, customDetectors])
+
+    detectAndMap()
+
+    return () => {
+      cancelled = true
+    }
+  }, [rowData, systemFields, columnData, fields])
 
   const handleConfirmMapping = () => {
     if (Object.keys(mapping).length === 0) {
@@ -218,7 +280,7 @@ export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => 
 
           <div className="mt-4">
             <button
-              // onClick={() => setIsAddModalOpen(true)}
+              onClick={() => setIsAddModalOpen(true)}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               {labels.buttons.addField}
@@ -236,12 +298,15 @@ export const DataMappingStep = forwardRef((props: DataMappingStepProps, ref) => 
           setIsConfirmModalOpen(false)
         }}
       />
-
-      {/* <AddFieldModal
+      {onAddField && (
+        <AddFieldModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onAddField={handleAddField}
-        /> */}
+          onAddField={onAddField}
+          setSystemFields={setSystemFields}
+          systemFields={systemFields}
+        />
+      )}
     </div>
   )
 })

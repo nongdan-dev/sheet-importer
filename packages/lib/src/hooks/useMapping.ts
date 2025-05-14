@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
 import { CustomType, ExcelColumn, ExcelRow } from '../types'
+import { useState, useCallback } from 'react'
 
 type MappingProps = {
   field: CustomType[]

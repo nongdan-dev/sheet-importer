@@ -19,6 +19,7 @@ export const SheetMappingData = ({
   onSubmit,
   fields = [],
   labels: propLabels = {},
+  onAddField,
 }: SheetMappingDataProps) => {
   const [activeTab, setActiveTab] = useState(STEP_VALIDATION.UPLOAD)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -165,10 +166,11 @@ export const SheetMappingData = ({
             setActiveTab(STEP_VALIDATION.VALIDATION)
             handleSubmit()
           }}
-          customDetectors={fields}
+          fields={fields}
           setDisableNegative={setDisableNegative}
           setDisablePositive={setDisablePositive}
           labels={labels.mapping}
+          onAddField={onAddField}
         />
       )}
 
